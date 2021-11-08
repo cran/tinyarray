@@ -37,7 +37,7 @@ geo_download <-  function(gse,by_annopbrobe = TRUE,
     if(!file.exists(paste0(destdir,"/",gse,"_eSet.Rdata"))){
       eSet <- AnnoProbe::geoChina(gse, destdir = destdir)
     }else{
-      suppressWarnings(load(paste0(destdir,"\\",gse,"_eSet.Rdata")))
+      suppressWarnings(load(paste0(destdir,"/",gse,"_eSet.Rdata")))
       eSet = gset
       rm(gset)
     }

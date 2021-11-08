@@ -1,14 +1,14 @@
-930a2455fa01f7e01664f6bb6ccb4e94 *DESCRIPTION
+64525d176170f8f458a9a9644cfc9dd8 *DESCRIPTION
 2825ea2ac289bdf7b15ae100df6348d3 *LICENSE
 7765169f2374ced1bff9904626499762 *NAMESPACE
 63d46b027cfb307a1cef44b7fd87d2fa *NEWS.md
-8209b3bbbf43097362a33d0d6c62b0a2 *R/10_survival_cut_cox_km.R
+3db416afe3c051e6a330446c1913018a *R/10_survival_cut_cox_km.R
 ea2fc3118844f12c6853d44665cf2331 *R/11_surv_box_plot.R
 c34f604ad809760a8838da4cc04c0271 *R/12_cor_and_hyper.R
 4f0e37b1f87d5c382d15d1a6025ef992 *R/13_network_edge_node.R
 3d1c713a3844e22c87e0bd0b72ec1aaa *R/14_dumd_all.R
-f7ba18f5607852f4478d2fba09583d93 *R/1_plots.R
-2d75f6e593891c3d3e99121812b8398a *R/2_geo_id.R
+2a221ba47416bfce477e2f19aca4b2e0 *R/1_plots.R
+c59f400ff6a0c5cfdf6baa7c45ad0e48 *R/2_geo_id.R
 2da1ee69c0c7f25c5dd532e731baa577 *R/3_get_deg.R
 fa42ebe50e4793a99fb2526e4e1fb7dc *R/4_multi_deg.R
 6a2d9eb4158620f834eda75465d529fd *R/5_get_deg_all.R
@@ -41,7 +41,7 @@ cd382b4ee9d96542d7fe1af9af6e5872 *man/deseq_data.Rd
 51acd92ef3416dcf93b014a7f314f181 *man/double_enrich.Rd
 5524cbb42af4adf0859cc1c92d4ad06d *man/draw_KM.Rd
 075e091a20b6ec7d3fb24a10cde45d9b *man/draw_boxplot.Rd
-c9e372f87e0e35a2a3d8dfed42ec09d9 *man/draw_heatmap.Rd
+22a7babf490c1a03b29e82529a2834f7 *man/draw_heatmap.Rd
 91258d1a50485e6559b2493f1ce8dfc6 *man/draw_heatmap2.Rd
 f9f5ba77b9523733a97731cfc4972f89 *man/draw_pca.Rd
 e467eedf15a51821d8b51aa31460afdf *man/draw_tsne.Rd
