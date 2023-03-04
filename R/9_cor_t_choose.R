@@ -60,6 +60,8 @@ t_choose <- function(genes,exp,group_list,up_only = FALSE,down_only = FALSE,pval
 ##' cor.test for all variables(each two columns)
 ##'
 ##' @param x A numeric matrix or data.frame
+##' @param drop drop values
+##' @inheritParams cor.one
 ##' @return a data.frame with cor.test p.value and estimate
 ##' @author Xiaojie Sun
 ##' @export
@@ -69,7 +71,7 @@ t_choose <- function(genes,exp,group_list,up_only = FALSE,down_only = FALSE,pval
 ##' @seealso
 ##' \code{\link{cor.one}}
 
-cor.full <- function(x){
+cor.full <- function(x,drop = min(x)-0.001,min.obs = 10){
   ss = list()
   p = list()
   ss1 = utils::combn(colnames(x),2)
@@ -78,13 +80,27 @@ cor.full <- function(x){
   for(i in (1:ncol(ss1))){
     bt = x[,ss1[1,i]]
     kt = x[,ss1[2,i]]
-    cot = stats::cor.test(bt,kt)
+    k1 = bt > drop
+    k2 = kt > drop
+    if(sum(k1&k2) < min.obs){
+      p[[i]] = c(NA,NA)
+    }else{
+    cot = stats::cor.test(bt[k1&k2],kt[k1&k2])
     p[[i]] = c(cot$p.value,cot$estimate)
+    }
     names(p[[i]]) = c("p.value","cor")
   }
   re = do.call(cbind,p)
   colnames(re) = apply(ss1, 2, paste,collapse =":")
-  return(as.data.frame(t(re)))
+  re = as.data.frame(t(re))
+  ks = sapply(rownames(re), function(gs){
+    g1 = str_split(gs,":",simplify = T)[,1]
+    g2 = str_split(gs,":",simplify = T)[,2]
+    sum(x[,g1]>drop & x[,g2]>drop)
+  })
+  re$obsnumber = ks
+  re = stats::na.omit(re)
+  return(re)
 }
 
 
@@ -95,6 +111,9 @@ cor.full <- function(x){
 ##'
 ##' @param x A numeric matrix or data.frame
 ##' @param var your chosen variable,only one.
+##' @param drop.var drop values in var
+##' @param drop.other drop values in other columns
+##' @param min.obs minimum number of observations  after dropping
 ##' @return A data.frame with cor.test p.value and estimate
 ##' @author Xiaojie Sun
 ##' @export
@@ -104,25 +123,34 @@ cor.full <- function(x){
 ##' @seealso
 ##' \code{\link{cor.full}}
 
-cor.one <- function(x,var){
+cor.one <- function(x,var,drop.var = min(x[,var])-0.001,
+                    drop.other = min(x[,-which(colnames(x)==var)])-0.001,
+                    min.obs = 10){
   if(!(var %in% colnames(x))) stop(paste0(var," is not a colname of ",x,",please check it."))
   if(!all(!duplicated(colnames(x)))) stop("unique colnames is required")
-  ss = list()
   p = list()
-  ss1 = matrix(c(rep(var,times = (ncol(x)-1)),
-                 setdiff(colnames(x),var)),
-               nrow = 2,byrow = TRUE)
-  ss2 = setdiff(colnames(x),var)
-
-  for(i in (1:ncol(ss1))){
-    bt = x[,ss1[1,i]]
-    kt = x[,ss1[2,i]]
-    cot = stats::cor.test(bt,kt)
-    p[[i]] = c(cot$p.value,cot$estimate)
+  ss = setdiff(colnames(x),var)
+  bt = x[,var]
+  k1 = bt > drop.var
+  for(i in (1:length(ss))){
+    kt = x[,ss[[i]]]
+    k2 = kt > drop.other
+    if(sum(k1&k2) < min.obs){
+      p[[i]] = c(NA,NA)
+    }else{
+      cot = stats::cor.test(bt[k1&k2],kt[k1&k2])
+      p[[i]] = c(cot$p.value,cot$estimate)
+    }
     names(p[[i]]) = c("p.value","cor")
   }
   re = do.call(cbind,p)
-  colnames(re) = ss2
-  return(as.data.frame(t(re)))
+  colnames(re) = ss
+  re = as.data.frame(t(re))
+  ks = sapply(rownames(re), function(g){
+    sum(x[,g]>drop.other)
+  })
+  re$obsnumber = ks
+  re = stats::na.omit(re)
+  return(re)
 }
 

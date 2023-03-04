@@ -16,7 +16,7 @@
 ##' @examples
 ##' \donttest{
 ##' gse = "GSE42872"
-##' a = geo_download(gse,by_annopbrobe = FALSE,destdir=tempdir())
+##' a = geo_download(gse,destdir=tempdir())
 ##' }
 ##' @seealso
 ##' \code{\link{find_anno}}
@@ -24,14 +24,18 @@
 geo_download <-  function(gse,by_annopbrobe = TRUE,
                           simpd = TRUE,colon_remove = FALSE,
                           destdir = getwd()){
+
   if(!requireNamespace("Biobase",quietly = TRUE)) {
-    stop("you must install Biobase first by BiocManger::install('Biobase')",call. = FALSE)
+    stop("Package \"Biobase\" needed for this function to work.
+         Please install it by BiocManger::install('Biobase')",call. = FALSE)
   }
   if((!by_annopbrobe) & !requireNamespace("GEOquery",quietly = TRUE)) {
-    stop("you must install GEOquery first by BiocManger::install('GEOquery')",call. = FALSE)
+    stop("Package \"GEOquery\" needed for this function to work.
+         Please install it by BiocManger::install('GEOquery')",call. = FALSE)
   }
   if((by_annopbrobe) & !requireNamespace("AnnoProbe",quietly = TRUE)) {
-    stop("you must install AnnoProbe first by install.packages('AnnoProbe')",call. = FALSE)
+    stop("Package \"Biobase\" needed for this function to work.
+         Please install it by install.packages('AnnoProbe')",call. = FALSE)
   }
   if(by_annopbrobe){
     if(!file.exists(paste0(destdir,"/",gse,"_eSet.Rdata"))){
@@ -110,13 +114,10 @@ geo_download <-  function(gse,by_annopbrobe = TRUE,
 find_anno <-function(gpl,install = FALSE,update = FALSE){
   gpl = str_to_upper(gpl)
   if(!any(pkg_all$gpl==gpl)) {
-    # R包不可用
     if(gpl %in% setdiff(exists_anno_list,pkg_all$gpl)){
-      # 只有idmap可用
       ml1 = str_remove_all(paste0("`ids <- AnnoProbe::idmap\\(","\\'",gpl,"\\'","\\)`"),"\\\\")
       print(paste0("no annotation packages avliable,please use ",ml1))
     }else{
-      # R包和idmap都不可用
       print("no annotation avliable in Bioconductor and AnnoProbe")
     }
   }else {
@@ -130,10 +131,8 @@ find_anno <-function(gpl,install = FALSE,update = FALSE){
       }
     }
     if(!(gpl %in% exists_anno_list)) {
-      #仅有R包可用
       print(paste0(ml2," is avaliable"))
     }else {
-      #idmap和R包都可用
       print(paste0(ml2," and ",ml1 ," are both avaliable"))
     }
   }

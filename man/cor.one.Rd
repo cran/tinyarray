@@ -4,12 +4,24 @@
 \alias{cor.one}
 \title{cor.test for one variable with all variables}
 \usage{
-cor.one(x, var)
+cor.one(
+  x,
+  var,
+  drop.var = min(x[, var]) - 0.001,
+  drop.other = min(x[, -which(colnames(x) == var)]) - 0.001,
+  min.obs = 10
+)
 }
 \arguments{
 \item{x}{A numeric matrix or data.frame}
 
 \item{var}{your chosen variable,only one.}
+
+\item{drop.var}{drop values in var}
+
+\item{drop.other}{drop values in other columns}
+
+\item{min.obs}{minimum number of observations  after dropping}
 }
 \value{
 A data.frame with cor.test p.value and estimate

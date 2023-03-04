@@ -8,23 +8,13 @@ multi_deg_all(
   exp,
   group_list,
   ids,
-  logFC_cutoff = 1,
-  pvalue_cutoff = 0.05,
-  adjust = FALSE,
-  entriz = TRUE,
-  scale_before = FALSE,
-  n_cutoff = 3,
-  cluster_cols = TRUE,
-  annotation_legend = FALSE,
-  show_rownames = FALSE,
-  legend = FALSE,
-  lab = NA,
   pkg = 4,
-  symmetry = FALSE,
-  heat_union = TRUE,
-  heat_id = 1,
-  gene_number = 200,
-  color_volcano = c("#2874C5", "grey", "#f87669")
+  symmetry = TRUE,
+  my_genes = NULL,
+  show_rownames = FALSE,
+  cluster_cols = TRUE,
+  color_volcano = c("#2874C5", "grey", "#f87669"),
+  ...
 )
 }
 \arguments{
@@ -34,39 +24,19 @@ multi_deg_all(
 
 \item{ids}{a data.frame with 2 columns,including probe_id and symbol}
 
-\item{logFC_cutoff}{Cutoff value of logFC,1 by default.}
-
-\item{pvalue_cutoff}{Cutoff value of pvalue,0.05 by default.}
-
-\item{adjust}{a logical value, would you like to use adjusted pvalue to draw this plot,FAlSE by default.}
-
-\item{entriz}{whether convert symbols to entriz ids}
-
-\item{scale_before}{deprecated parameter}
-
-\item{n_cutoff}{3 by defalut , scale before plot and set a cutoff,usually 2 or 1.6}
-
-\item{cluster_cols}{if F,heatmap will nor cluster in column}
-
-\item{annotation_legend}{logical,show annotation legend or not}
-
-\item{show_rownames}{logical,show rownames or not}
-
-\item{legend}{logical,show legend or not}
-
-\item{lab}{label for  x axis in volcano plot}
-
 \item{pkg}{a integer ,means which Differential analysis packages you used,we support three packages by now, 1,2,3,4 respectively means "DESeq2","edgeR","limma(voom)","limma"}
 
 \item{symmetry}{a logical value ,would you like to get your plot symmetrical}
 
-\item{heat_union}{logical ,use union or intersect DEGs for heatmap}
+\item{my_genes}{genes for pheatmap}
 
-\item{heat_id}{id of heatmap,1 for all DEGs,2 for head and tail,3 for top n DEGs}
+\item{show_rownames}{boolean specifying if column names are be shown.}
 
-\item{gene_number}{how many DEGs will heatmap show .}
+\item{cluster_cols}{boolean values determining if columns should be clustered or \code{hclust} object.}
 
 \item{color_volcano}{color for volcano}
+
+\item{...}{other parameters from multi_deg}
 }
 \value{
 a list with deg data.frame, volcano plot and a list with DEGs.
@@ -77,7 +47,7 @@ do diffiencial analysis according to exprission set and group information
 \examples{
 \donttest{
 gse = "GSE474"
-geo = geo_download(gse,destdir=tempdir(),by_annopbrobe = FALSE)
+geo = geo_download(gse,destdir=tempdir())
 geo$exp[1:4,1:4]
 geo$exp=log2(geo$exp+1)
 group_list=ifelse(stringr::str_detect(geo$pd$title,"MObese"),"MObese",

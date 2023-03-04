@@ -8,6 +8,8 @@
 ##' @param addEllipses logical,add ellipses or not
 ##' @param style plot style,"default","ggplot2"and "3D"
 ##' @param color.label color legend label
+##' @param title plot title
+##' @param ... other paramters from fviz_pca_ind
 ##' @importFrom ggplot2 ggplot
 ##' @importFrom ggplot2 scale_color_manual
 ##' @importFrom ggplot2 scale_fill_manual
@@ -21,13 +23,12 @@
 ##' @export
 ##' @examples
 ##' draw_pca(t(iris[,1:4]),iris$Species)
-##' exp <-  matrix(rnorm(60),nrow = 10)
-##' colnames(exp) <- paste0("sample",1:6)
-##' rownames(exp) <- paste0("gene",1:10)
-##' exp[1:4,1:4]
-##' group_list <- factor(rep(c("A","B"),each = 3))
-##' draw_pca(exp,group_list)
-##' draw_pca(exp,group_list,color = c("blue","red"))
+##' draw_pca(t(iris[,1:4]),iris$Species,style = "ggplot2")
+##' draw_pca(t(iris[,1:4]),iris$Species,style = "3D")
+##' #change color
+##' draw_pca(t(iris[,1:4]),iris$Species,color = c("#E78AC3", "#A6D854", "#FFD92F"))
+
+
 ##' @seealso
 ##' \code{\link{draw_heatmap}};\code{\link{draw_volcano}};\code{\link{draw_venn}}
 
@@ -35,7 +36,9 @@ draw_pca <-  function(exp,group_list,
                       color = c("#2874C5","#f87669","#e6b707","#868686","#92C5DE","#F4A582","#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F","#E5C494","#B3B3B3"),
                       addEllipses = TRUE,
                       style = "default",
-                      color.label = "Group"){
+                      color.label = "Group",
+                      title = "",
+                      ...){
   if(!requireNamespace("FactoMineR",quietly = TRUE)) {
     stop("Package \"FactoMineR\" needed for this function to work.
          Please install it by install.packages('FactoMineR')",call. = FALSE)
@@ -48,11 +51,6 @@ draw_pca <-  function(exp,group_list,
   if(!p1) stop("exp must be a numeric matrix")
   p2  <-  (sum(!duplicated(group_list)) > 1)
   if(!p2) stop("group_list must more than 1")
-  p3 <- is.factor(group_list)
-  if(!p3) {
-    group_list = factor(group_list)
-    warning("group_list was covert to factor")
-  }
   dat <- as.data.frame(t(exp))
   dat.pca <- FactoMineR::PCA(dat, graph = FALSE)
   col = color[1:length(levels(group_list))]
@@ -60,9 +58,11 @@ draw_pca <-  function(exp,group_list,
     factoextra::fviz_pca_ind(dat.pca,
                              geom.ind = "point",
                              col.ind = group_list,
-                             palette = col,
                              addEllipses = addEllipses,
-                             legend.title = "Groups")
+                             palette = col,
+                             legend.title = "Groups",
+                             title = title,
+                             ...)
   }else if(style == "ggplot2"){
     pdat = data.frame(dat.pca[["ind"]][["coord"]],
                       Group = group_list)
@@ -73,7 +73,8 @@ draw_pca <-  function(exp,group_list,
       scale_fill_manual(values = color[1:nlevels(group_list)])+
       theme_classic()+
       theme(legend.position = "top")+
-      labs(color = color.label,fill = color.label)
+      labs(color = color.label,fill = color.label,title = title)
+
     if(addEllipses) p = p +
       stat_ellipse(aes(color = Group,fill = Group),
                    geom = "polygon",
@@ -86,9 +87,9 @@ draw_pca <-  function(exp,group_list,
                       Group = group_list)
     scatterplot3d::scatterplot3d(pdat[,1:3],
                                  color = "black",
-                                 main="PCA",
                                  pch = 21,
-                                 bg = colors)
+                                 bg = colors,
+                                 main = title)
     graphics::legend("bottom",col = "black",
            legend = levels(group_list),
            pt.bg =  color[1:nlevels(group_list)], pch = 21,
@@ -110,7 +111,6 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c(".","Dim.1","Dim.2","Gro
 ##' @param scale_before deprecated parameter
 ##' @param n_cutoff 3 by defalut , scale before plot and set a cutoff,usually 2 or 1.6
 ##' @param annotation_legend logical,show annotation legend or not
-##' @param cluster_cols if F,heatmap will nor cluster in column
 ##' @param color color for heatmap
 ##' @param color_an color for column annotation
 ##' @param legend logical,show legend or not
@@ -119,6 +119,7 @@ if(getRversion() >= "2.15.1")  utils::globalVariables(c(".","Dim.1","Dim.2","Gro
 ##' @param main the title of the plot
 ##' @param split_column split column by group_list
 ##' @param show_column_title show column title or not
+##' @param ... other parameters from pheatmap
 ##' @return a heatmap plot according to \code{exp} and grouped by \code{group}.
 ##' @author Xiaojie Sun
 ##' @importFrom pheatmap pheatmap
@@ -145,7 +146,6 @@ draw_heatmap <-  function(n,
                           group_list,
                           scale_before = FALSE,
                           n_cutoff = 3,
-                          cluster_cols = TRUE,
                           legend = FALSE,
                           show_rownames = FALSE,
                           annotation_legend=FALSE,
@@ -154,9 +154,14 @@ draw_heatmap <-  function(n,
                           color = grDevices::colorRampPalette(c("#2fa1dd", "white", "#f87669"))(100),
                           color_an = c("#2fa1dd","#f87669","#e6b707","#868686","#92C5DE","#F4A582","#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F","#E5C494","#B3B3B3"),
                           scale = TRUE,
-                          main = NA){
+                          main = NA,...){
   if(!requireNamespace("ggplotify",quietly = TRUE)) {
     stop("Package \"ggplotify\" needed for this function to work. Please install it by install.packages('ggplotify')",call. = FALSE)
+  }
+  p3 <- is.factor(group_list)
+  if(!p3) {
+    group_list = factor(group_list)
+    warning("group_list was covert to factor")
   }
   n = as.data.frame(n)
   if(scale_before) {
@@ -167,11 +172,6 @@ draw_heatmap <-  function(n,
   if(!p1) stop("non-numeric matrix detected")
   p2  <-  (sum(!duplicated(group_list)) > 1)
   if(!p2) stop("group_list must more than 1")
-  p3 <- is.factor(group_list)
-  if(!p3) {
-    group_list = factor(group_list)
-    warning("group_list was covert to factor")
-  }
   if(split_column){
     if(!requireNamespace("circlize",quietly = TRUE)) {
       stop("Package \"circlize\" needed for this function to work. Please install it by install.packages('circlize')",call. = FALSE)
@@ -235,13 +235,11 @@ draw_heatmap <-  function(n,
                    color = color,
                    annotation_col=annotation_col,
                    annotation_colors = ann_colors,
-                   cluster_cols = cluster_cols,
                    breaks = breaks,
                    legend = legend,
                    silent = TRUE,
                    annotation_legend = annotation_legend,
-                   main = main,
-                   annotation_names_col = FALSE)
+                   main = main,...)
       p = ggplotify::as.ggplot(p)
     }
   }
@@ -260,7 +258,8 @@ draw_heatmap <-  function(n,
 ##' @param adjust a logical value, would you like to use adjusted pvalue to draw this plot,FAlSE by default.
 ##' @param symmetry a logical value ,would you like to get your plot symmetrical
 ##' @param color color vector
-##' @param lab label for  x axis in volcano plot
+##' @param lab label for  x axis in volcano plot, if NA , x axis names by package
+##' @param xlab.package whether to use the package name as the x axis name
 ##' @return a volcano plot according to logFC and P.value(or adjust P.value)
 ##' @author Xiaojie Sun
 ##' @importFrom ggplot2 ggplot
@@ -286,7 +285,10 @@ draw_heatmap <-  function(n,
 ##' @seealso
 ##' \code{\link{draw_heatmap}};\code{\link{draw_pca}};\code{\link{draw_venn}}
 
-draw_volcano <- function(deg,lab=NA,pvalue_cutoff = 0.05,logFC_cutoff= 1,pkg = 1,adjust = FALSE,symmetry = FALSE,color = c("#2874C5", "grey","#f87669")){
+draw_volcano <- function(deg,lab=NA,xlab.package = TRUE,
+                         pvalue_cutoff = 0.05,logFC_cutoff= 1,
+                         pkg = 1,adjust = FALSE,symmetry = FALSE,
+                         color = c("#2874C5", "grey","#f87669")){
   if(!is.data.frame(deg)) stop("deg must be a data.frame created by Differential analysis")
   if(pvalue_cutoff>0.1)warning("Your pvalue_cutoff seems too large")
   if(pvalue_cutoff>=1)stop("pvalue_cutoff will never larger than 1")
@@ -306,8 +308,13 @@ draw_volcano <- function(deg,lab=NA,pvalue_cutoff = 0.05,logFC_cutoff= 1,pkg = 1
   }
   colnames(dat)[1:2]=c("logFC","P.value")
   #logFC_cutoff <- with(dat,mean(abs(logFC)) + 2*sd(abs(logFC)) )
-  dat$change = with(dat,ifelse(logFC>logFC_cutoff & P.value<pvalue_cutoff , "UP",
-                               ifelse(logFC< -logFC_cutoff & P.value<pvalue_cutoff , "DOWN","NOT")))
+  if(is.null(deg$change)){
+
+    dat$change = with(dat,ifelse(logFC>logFC_cutoff & P.value<pvalue_cutoff , "UP",
+                                 ifelse(logFC< -logFC_cutoff & P.value<pvalue_cutoff , "DOWN","NOT")))
+  }else{
+    dat$change = str_to_upper(deg$change)
+  }
   if(is.na(lab)) lab = c("DESeq2","edgeR","limma(voom)","limma")[pkg]
   this_tile <- paste0(nrow(dat[dat$change =='DOWN',]),
                       ' down, ',
@@ -320,10 +327,10 @@ draw_volcano <- function(deg,lab=NA,pvalue_cutoff = 0.05,logFC_cutoff= 1,pkg = 1
     geom_point(alpha=0.4, size=1.75,
                aes(color=change)) +
     scale_color_manual(values=color)+
-    geom_vline(xintercept=c(-logFC_cutoff,logFC_cutoff),lty=4,col="black",lwd=0.8) +
-    geom_hline(yintercept = -log10(pvalue_cutoff),lty=4,col="black",lwd=0.8) +
+    geom_vline(xintercept = c(-logFC_cutoff,logFC_cutoff),linetype=4,col="black",linewidth=0.8) +
+    geom_hline(yintercept = -log10(pvalue_cutoff),linetype=4,col="black",linewidth=0.8) +
     theme_bw()+
-    labs(title=this_tile , x=lab, y="")+
+    labs(title = this_tile , x = lab, y = "-log10(P.value)")+
     theme(plot.title = element_text(hjust = 0.5))
   ce = ceiling(max(abs(dat$logFC)))
   if(symmetry)p <- p+scale_x_continuous(limits = c(-ce,ce),expand = c(0,0))
@@ -335,9 +342,14 @@ utils::globalVariables(c("logFC","P.value","change"))
 ##'
 ##' print a venn plot for deg result created by three packages
 ##'
+##' @inheritParams VennDiagram::venn.diagram
+##' @inheritParams VennDiagram::draw.single.venn
 ##' @param x a list for plot
-##' @param name main of the plot
 ##' @param color color vector
+##' @param reverse logical,reflect the three-set Venn diagram along its central
+##' vertical axis of symmetry. Use in combination with rotation
+##' to generate all possible set orders
+##' @param ... other parameters from venn.diagram
 ##' @return a venn plot according to \code{x}, \code{y} and.\code{z} named "name" paramter
 ##' @author Xiaojie Sun
 ##' @export
@@ -348,7 +360,23 @@ utils::globalVariables(c("logFC","P.value","change"))
 ##' @seealso
 ##' \code{\link{draw_pca}};\code{\link{draw_volcano}};\code{\link{draw_heatmap}}
 
-draw_venn <- function(x,name,color = c("#2874C5","#f87669","#e6b707","#868686","#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F","#E5C494","#B3B3B3")){
+draw_venn <- function(x,main,
+                      color = c("#2874C5","#f87669","#e6b707","#868686","#66C2A5","#FC8D62","#8DA0CB","#E78AC3","#A6D854","#FFD92F","#E5C494","#B3B3B3"),
+                      imagetype ="png",
+                      filename=NULL,
+                      lwd=1,
+                      lty=1,
+                      col=color[1:length(x)],
+                      fill=color[1:length(x)],
+                      cat.col=color[1:length(x)],
+                      cat.cex = 1,
+                      cat.dist = -0.15,
+                      rotation.degree = 0,
+                      main.cex = 1,
+                      cex=1,
+                      alpha = 0.1,
+                      reverse=TRUE,
+                      ...){
   if(as.numeric(grDevices::dev.cur())!=1) grDevices::graphics.off()
   if(!requireNamespace("VennDiagram",quietly = TRUE)) {
     stop("Package \"VennDiagram\" needed for this function to work. Please install it byby install.packages('VennDiagram')",call. = FALSE)
@@ -361,23 +389,23 @@ draw_venn <- function(x,name,color = c("#2874C5","#f87669","#e6b707","#868686","
   }
   if(!is.list(x)) stop("x must be a list")
   if(length(x)>7) stop("why do you give me so many elements to compare, I reject!")
-  col = color[1:length(x)]
   p = VennDiagram::venn.diagram(x = x,
-                   imagetype ="png",
-                   filename=NULL,
-                   lwd=1,#圈线粗度
-                   lty=1, #圈线类型
+                   imagetype =imagetype,
+                   filename=filename,
+                   lwd=lwd,
+                   lty=lty,
                    col=col,
-                   fill=col,
-                   cat.col=col,
-                   cat.cex = 1,
-                   cat.dist = -0.15,
-                   rotation.degree = 0,
-                   main = name,
-                   main.cex = 1,
-                   cex=1,
-                   alpha = 0.1,
-                   reverse=TRUE)
+                   fill=fill,
+                   cat.col=fill,
+                   cat.cex = cat.cex,
+                   cat.dist = cat.dist,
+                   rotation.degree = rotation.degree,
+                   main = main,
+                   main.cex = main.cex,
+                   cex=cex,
+                   alpha = alpha,
+                   reverse=reverse,
+                   ...)
   p = ggplotify::as.ggplot(cowplot::as_grob(p))
   file.remove(dir(pattern = ("^VennDiagram.*log$")))
   return(p)
@@ -399,6 +427,7 @@ draw_venn <- function(x,name,color = c("#2874C5","#f87669","#e6b707","#868686","
 ##' @param grouplab title of group legend
 ##' @param p.label whether to show p value in the plot
 ##' @param add_error_bar whether to add error bar
+##' @param ... other parameters from stat_compare_means
 ##' @return a boxplot according to \code{exp} and grouped by \code{group}.
 ##' @author Xiaojie Sun
 ##' @importFrom tibble rownames_to_column
@@ -410,6 +439,7 @@ draw_venn <- function(x,name,color = c("#2874C5","#f87669","#e6b707","#868686","
 ##' @importFrom ggplot2 labs
 ##' @importFrom ggplot2 scale_fill_manual
 ##' @importFrom ggplot2 element_text
+##' @importFrom ggplot2 after_stat
 ##' @export
 ##' @examples
 ##' draw_boxplot(t(iris[,1:4]),iris$Species)
@@ -436,7 +466,8 @@ draw_boxplot = function(exp,group_list,
                         p.label = FALSE,
                         add_error_bar = FALSE,
                         color = c("#2874C5","#f87669","#e6b707","#868686","#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854",
-                                 "#FFD92F", "#E5C494", "#B3B3B3")){
+                                 "#FFD92F", "#E5C494", "#B3B3B3"),
+                                 ...){
   if(!requireNamespace("ggpubr",quietly = TRUE)) {
     stop("Package \"ggpubr\" needed for this function to work.
          Please install it by install.packages('ggpubr')",call. = FALSE)
@@ -483,7 +514,7 @@ draw_boxplot = function(exp,group_list,
     exp = exp[rownames(exp) %in% names(x),]
   }
 
-  if(length(x)>40) message("seems to be too many rows")
+  if(length(x)>40) message("it seems to be too many rows")
   dat = rownames_to_column(as.data.frame(t(exp)),var = "sample")
   dat$group = group_list
   dat = tidyr::gather(dat,
@@ -504,15 +535,20 @@ draw_boxplot = function(exp,group_list,
     scale_fill_manual(values = col)
   if(add_error_bar) p = stat_boxplot(geom ='errorbar', width = width)
   if(!p.label){
-    p = p + ggpubr::stat_compare_means(aes(group = group,label = ..p.signif..),method = method)
+    p = p + ggpubr::stat_compare_means(aes(group = group,
+                                           label = ggplot2::after_stat(p.signif)),
+                                       method = method,...)
   }else{
-    p = p + ggpubr::stat_compare_means(aes(group = group,label = ..p.format..),method = method)
+    p = p + ggpubr::stat_compare_means(aes(group = group,
+                                           label = ggplot2::after_stat(p.format)),
+                                       method = method,...)
   }
-  if(length(x)>10) p = p + theme(axis.text.x = element_text(angle=50,vjust = 0.5))
+  if(length(x)>10) p = p +
+    theme(axis.text.x = element_text(vjust = 1,hjust = 1,angle = 80))
   return(p)
 }
 
-utils::globalVariables(c(".","rows","group","..p.signif..","..p.format.."))
+utils::globalVariables(c(".","rows","group","p.signif","p.format"))
 
 ##' ggheat
 ##'
@@ -520,9 +556,11 @@ utils::globalVariables(c(".","rows","group","..p.signif..","..p.format.."))
 ##'
 ##' @param dat expression matrix for plot
 ##' @param group group for expression colnames
-##' @param cluster logical,cluster or not, default F
-##' @param show_rownames logical,show rownames in plot or not,default T
-##' @param show_colnames logical,show colnames in plot or not,default T
+##' @param cluster logical,cluster in both rows and column or not, default F,now replaced by cluster_rows and cluster_cols.
+##' @param cluster_rows logical, if rows (on the plot) should be clustered, default F
+##' @param cluster_cols logical, if column (on the plot) should be clustered, default F
+##' @param show_rownames logical,show rownames in plot or not, default T
+##' @param show_colnames logical,show colnames in plot or not, default T
 ##' @param groupname name of group legend
 ##' @param expname name of exp legend
 ##' @param fill_mid use median value as geom_tile fill midpoint
@@ -554,8 +592,8 @@ utils::globalVariables(c(".","rows","group","..p.signif..","..p.format.."))
 ##' group = rep(c("A","B"),each = nrow(exp_dat)/2)
 ##' group = factor(group,levels = c("A","B"))
 ##' ggheat(exp_dat,group)
-##' ggheat(exp_dat,group,cluster = TRUE)
-##' ggheat(exp_dat,group,cluster = TRUE,show_rownames = FALSE,
+##' ggheat(exp_dat,group,cluster_rows = TRUE)
+##' ggheat(exp_dat,group,cluster_rows = TRUE,show_rownames = FALSE,
 ##'        show_colnames = FALSE,groupname = "risk",expname = "expression")
 
 
@@ -565,13 +603,20 @@ ggheat = function(dat,group,cluster = FALSE,
                   legend_color = c("#2874C5","#f87669","#e6b707","#868686","#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F",
                                    "#E5C494", "#B3B3B3"),
                   show_rownames = TRUE,show_colnames = TRUE,
+                  cluster_rows = FALSE,cluster_cols = FALSE,
                   groupname = "group",expname = "exp",
                   fill_mid = TRUE){
   dat = data.frame(dat)
-
+  ph = pheatmap::pheatmap(t(dat),silent = TRUE)
   if(cluster){
-    ph = pheatmap::pheatmap(t(dat),silent = TRUE)
-    dat = dat[ph$tree_col$order,ph$tree_row$order]
+    cluster_rows = TRUE
+    cluster_cols = TRUE
+  }
+  if(cluster_rows){
+    dat = dat[,ph$tree_row$order]
+  }
+  if(cluster_cols){
+    dat = dat[ph$tree_col$order,]
     group = group[ph$tree_col$order]
   }
 
@@ -686,7 +731,7 @@ draw_tsne = function(exp,group_list,perplexity=30,
   return(p)
 }
 
-utils::globalVariables(c("Y1","Y2","group"))
+utils::globalVariables(c("Y1","Y2","group","patient","ri","time","event"))
 
 ##' draw_KM
 ##'
@@ -698,6 +743,7 @@ utils::globalVariables(c("Y1","Y2","group"))
 ##' @param event_col colname of event
 ##' @param legend.title legend title
 ##' @param legend.labs character vector specifying legend labels
+##' @param ... other parameters from ggsurvplot
 ##' @return a KM-plot
 ##' @author Xiaojie Sun
 ##' @importFrom survival survfit
@@ -716,7 +762,8 @@ draw_KM = function(meta,
                    legend.title = "Group",
                    legend.labs = levels(group_list),
                    color = c("#2874C5","#f87669","#e6b707","#868686","#92C5DE", "#F4A582", "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3",
-                             "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3")){
+                             "#A6D854", "#FFD92F", "#E5C494", "#B3B3B3"),
+                             ...){
   p1 <-  (time_col %in% colnames(meta)) & (event_col %in% colnames(meta))
   if(!p1){
     stop("meta data must involved time and event columns")
@@ -739,7 +786,8 @@ draw_KM = function(meta,
   p = survminer::ggsurvplot(sfit,pval = T,data = meta,
                  palette = color[1:nlevels(group_list)],
                  legend.title = legend.title,
-                 legend.labs = legend.labs)
+                 legend.labs = legend.labs,
+                 ...)
   return(p$plot)
 }
 

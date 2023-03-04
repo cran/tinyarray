@@ -9,7 +9,6 @@ draw_heatmap(
   group_list,
   scale_before = FALSE,
   n_cutoff = 3,
-  cluster_cols = TRUE,
   legend = FALSE,
   show_rownames = FALSE,
   annotation_legend = FALSE,
@@ -20,7 +19,8 @@ draw_heatmap(
     "#66C2A5", "#FC8D62", "#8DA0CB", "#E78AC3", "#A6D854", "#FFD92F", "#E5C494",
     "#B3B3B3"),
   scale = TRUE,
-  main = NA
+  main = NA,
+  ...
 )
 }
 \arguments{
@@ -31,8 +31,6 @@ draw_heatmap(
 \item{scale_before}{deprecated parameter}
 
 \item{n_cutoff}{3 by defalut , scale before plot and set a cutoff,usually 2 or 1.6}
-
-\item{cluster_cols}{if F,heatmap will nor cluster in column}
 
 \item{legend}{logical,show legend or not}
 
@@ -51,6 +49,8 @@ draw_heatmap(
 \item{scale}{logical,scale the matrix or not}
 
 \item{main}{the title of the plot}
+
+\item{...}{other parameters from pheatmap}
 }
 \value{
 a heatmap plot according to \code{exp} and grouped by \code{group}.

@@ -44,7 +44,8 @@ make_tcga_group <- function(exp){
 ##' @seealso
 ##' \code{\link{trans_array}}
 
-trans_exp = function(exp,mrna_only = FALSE,lncrna_only = FALSE,gtex = FALSE){
+trans_exp = function(exp,mrna_only = FALSE,
+                     lncrna_only = FALSE,gtex = FALSE){
   k00 = any(str_detect(colnames(exp),"TCGA"))
   if(!k00)warning("this expression set probably not from TCGA,please ensure it")
   k0 = any(str_detect(colnames(exp),"GTEX"))
@@ -97,9 +98,9 @@ utils::globalVariables(c("lnc_anno","mRNA_anno","lnc_annov23","mRNA_annov23"))
 
 ##' trans_array
 ##'
-##' transform rownames for microarray expression matrix
+##' transform rownames for microarray or rnaseq expression matrix
 ##'
-##' @param exp TCGA or TCGA_Gtex expression set from gdc or xena
+##' @param exp  microarray expression matrix with probe_id as rownames
 ##' @param ids data.frame  with original rownames and new rownames
 ##' @param from colname for original rownames
 ##' @param to colname for new rownames
@@ -117,8 +118,8 @@ utils::globalVariables(c("lnc_anno","mRNA_anno","lnc_annov23","mRNA_annov23"))
 
 trans_array = function(exp,ids,from = "probe_id",
                        to = "symbol"){
+  if(!is.character(ids[,from])) ids[,from] = as.character(ids[,from])
   a = intersect(rownames(exp),ids[,from])
-  message(paste0(length(a) ," of ",nrow(exp)," rownames matched"))
   ids = ids[!duplicated(ids[,to]),]
   exp = exp[rownames(exp) %in% ids[,from],]
   ids = ids[ids[,from]%in% rownames(exp),]
@@ -127,7 +128,6 @@ trans_array = function(exp,ids,from = "probe_id",
   message(paste0(nrow(exp)," rownames transformed after duplicate rows removed"))
   return(exp)
 }
-
 
 ##' sam_filter
 ##'
@@ -214,3 +214,37 @@ match_exp_cl = function(exp,cl,id_column = "id",sample_centric = TRUE){
           please obtain exp_matched and cl_matched by split this list result.")
 }
 
+##' trans_exp_new
+##'
+##' transform rownames of expression set from "ensembl" to"symbol",according to the new information from ensembl database.
+##'
+##' @param exp expression set with ensembl as rownames
+##' @param mrna_only only keep mrna rows in result
+##' @param lncrna_only only keep lncrna rows in result
+##' @return a transformed expression set with symbol
+##' @author Xiaojie Sun
+##' @importFrom stringr str_split
+##' @export
+##' @examples
+##' exp = matrix(rnorm(1000),ncol = 10)
+##' rownames(exp) = sample(mRNA_annov23$gene_id,100)
+##' colnames(exp) = c(paste0("TCGA",1:5),paste0("GTEX",1:5))
+##' k  = trans_exp_new(exp)
+##' @seealso
+##' \code{\link{trans_exp}}
+trans_exp_new = function(exp,mrna_only = FALSE,
+                         lncrna_only = FALSE){
+  if(!requireNamespace("AnnoProbe"))stop("Package \"AnnoProbe\" needed for this function to work.
+         Please install it by install.packages('AnnoProbe')",call. = FALSE)
+  rownames(exp) = str_split(rownames(exp),"\\.",simplify = T)[,1]
+  re = AnnoProbe::annoGene(rownames(exp),ID_type = "ENSEMBL")
+  if(mrna_only){
+    re = re[re$biotypes=="protein_coding",]
+  }else if(lncrna_only){
+    re = re[re$biotypes=="lncRNA",]
+  }else{
+    re = re
+  }
+  exp = trans_array(exp,ids = re,from = "ENSEMBL",to = "SYMBOL")
+  return(exp)
+}

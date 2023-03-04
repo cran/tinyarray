@@ -93,3 +93,29 @@ cran 人工返回修改意见：
 5.message代替print
 
 6.示例里面删掉rm(list= ls())
+
+### 2.2.8
+
+1.exp_surv添加了cut.point参数，默认值false，即以中位数为截断值画图。修改了配色。
+
+2.解决了sur_cox的NA报错问题
+
+3.解决了quick_enrich画图横坐标消失的问题。
+
+4.新增函数risk_plot，画风险因子三图联动
+
+5.修改了suggest的包安装提示
+
+6.内置数据exprSet_hub1改为了logcpm，不再是原来的count
+
+### 2.2.9
+
+1.删除heat_id 和gene_number两个参数，用my_genes代替
+
+2.随ggplot2更新了 linewidth参数和 after_stat(p.format)
+
+3.作图函数，加上...过渡参数
+
+4.cor.one 和cor.full添加过滤0值参数
+
+5.更新trans_exp函数
