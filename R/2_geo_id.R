@@ -14,7 +14,7 @@
 ##' @importFrom dplyr %>%
 ##' @export
 ##' @examples
-##' \donttest{
+##' \dontrun{
 ##' gse = "GSE42872"
 ##' a = geo_download(gse,destdir=tempdir())
 ##' }
@@ -116,9 +116,9 @@ find_anno <-function(gpl,install = FALSE,update = FALSE){
   if(!any(pkg_all$gpl==gpl)) {
     if(gpl %in% setdiff(exists_anno_list,pkg_all$gpl)){
       ml1 = str_remove_all(paste0("`ids <- AnnoProbe::idmap\\(","\\'",gpl,"\\'","\\)`"),"\\\\")
-      print(paste0("no annotation packages avliable,please use ",ml1))
+      message(paste0("no annotation packages avliable,please use ",ml1))
     }else{
-      print("no annotation avliable in Bioconductor and AnnoProbe")
+      message("no annotation avliable in Bioconductor and AnnoProbe")
     }
   }else {
     qz = pkg_all$bioc_package[pkg_all$gpl== gpl]
@@ -131,9 +131,9 @@ find_anno <-function(gpl,install = FALSE,update = FALSE){
       }
     }
     if(!(gpl %in% exists_anno_list)) {
-      print(paste0(ml2," is avaliable"))
+      message(paste0(ml2," is avaliable"))
     }else {
-      print(paste0(ml2," and ",ml1 ," are both avaliable"))
+      message(paste0(ml2," and ",ml1 ," are both avaliable"))
     }
   }
 }
