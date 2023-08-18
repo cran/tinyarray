@@ -4,6 +4,7 @@
 ##'
 ##' @inheritParams draw_pca
 ##' @inheritParams draw_volcano
+##' @inheritParams trans_exp_new
 ##' @param entriz whether convert symbols to entriz ids
 ##' @param ids a data.frame with 2 columns,including probe_id and symbol
 ##' @return a deg data.frame with 10 columns
@@ -34,7 +35,8 @@ get_deg <- function(exp,
                     logFC_cutoff=1,
                     pvalue_cutoff=0.05,
                     adjust = FALSE,
-                    entriz = TRUE) {
+                    entriz = TRUE,
+                    species = "human") {
   p3 <- is.factor(group_list)
   if(!p3) {
     group_list = factor(group_list)
@@ -44,6 +46,7 @@ get_deg <- function(exp,
     if(ncol(exp)!=length(group_list))stop("wrong group_list or exp")
     if(ncol(ids)!=2)stop("wrong ids pramater,it should be a data.frame with probe_id and symbol")
     colnames(ids) = c("probe_id","symbol")
+    if(!is.character(ids$probe_id)) ids$probe_id = as.character(ids$probe_id)
 
     design=stats::model.matrix(~group_list)
     fit=lmFit(exp,design)
@@ -55,6 +58,7 @@ get_deg <- function(exp,
     }else{
       deg <- mutate(deg,probe_id=rownames(deg))
     }
+    ids = stats::na.omit(ids)
     ids = ids[!duplicated(ids$symbol),]
     deg <- inner_join(deg,ids,by="probe_id")
     if(adjust){
@@ -73,10 +77,32 @@ get_deg <- function(exp,
     deg <- mutate(deg,change)
 
     if(entriz){
+      if(species == "human"){
+        if(!requireNamespace("org.Hs.eg.db",quietly = TRUE)) {
+          stop("Package \"org.Hs.eg.db\" needed for this function to work.
+         Please install it by BiocManager::install('org.Hs.eg.db')",call. = FALSE)
+        }
+        or = org.Hs.eg.db::org.Hs.eg.db
+      }
+      if(species == "mouse"){
+        if(!requireNamespace("org.Mm.eg.db",quietly = TRUE)) {
+          stop("Package \"org.Mm.eg.db\" needed for this function to work.
+         Please install it by BiocManager::install('org.Mm.eg.db')",call. = FALSE)
+        }
+        or = org.Mm.eg.db::org.Mm.eg.db
+      }
+      if(species == "rat"){
+        if(!requireNamespace("org.Rn.eg.db",quietly = TRUE)) {
+          stop("Package \"org.Rn.eg.db\" needed for this function to work.
+         Please install it by BiocManager::install('org.Rn.eg.db')",call. = FALSE)
+        }
+        or = org.Rn.eg.db::org.Rn.eg.db
+      }
+
       s2e <- bitr(deg$symbol,
                   fromType = "SYMBOL",
                   toType = "ENTREZID",
-                  OrgDb = org.Hs.eg.db::org.Hs.eg.db)
+                  OrgDb = or)
 
       deg <- inner_join(deg,s2e,by=c("symbol"="SYMBOL"))
       deg <- deg[!duplicated(deg$symbol),]
@@ -88,7 +114,8 @@ get_deg <- function(exp,
                     logFC_cutoff = logFC_cutoff,
                     pvalue_cutoff = pvalue_cutoff,
                     adjust = adjust,
-                    entriz = entriz)
+                    entriz = entriz,
+                    species = species)
   }
   return(deg)
 }

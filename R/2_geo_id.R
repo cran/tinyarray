@@ -3,15 +3,13 @@
 ##' download gse data and get informations
 ##'
 ##' @param gse gse assession number
-##' @param by_annopbrobe getGEO or geoChina
+##' @param by_annopbrobe download data by geoquery or annoprobe
 ##' @param simpd get simplified pdata,drop out columns with all same values
 ##' @param colon_remove whether to remove duplicated columns with colons
 ##' @param destdir	 The destination directory for data downloads.
+##' @param n For data with more than one ExpressionSet, specify which one to analyze
 ##' @return a list with exp,pd and gpl
 ##' @author Xiaojie Sun
-##' @importFrom dplyr arrange
-##' @importFrom dplyr filter
-##' @importFrom dplyr %>%
 ##' @export
 ##' @examples
 ##' \dontrun{
@@ -23,15 +21,15 @@
 
 geo_download <-  function(gse,by_annopbrobe = TRUE,
                           simpd = TRUE,colon_remove = FALSE,
-                          destdir = getwd()){
+                          destdir = getwd(),n = 1){
 
   if(!requireNamespace("Biobase",quietly = TRUE)) {
     stop("Package \"Biobase\" needed for this function to work.
-         Please install it by BiocManger::install('Biobase')",call. = FALSE)
+         Please install it by BiocManager::install('Biobase')",call. = FALSE)
   }
   if((!by_annopbrobe) & !requireNamespace("GEOquery",quietly = TRUE)) {
     stop("Package \"GEOquery\" needed for this function to work.
-         Please install it by BiocManger::install('GEOquery')",call. = FALSE)
+         Please install it by BiocManager::install('GEOquery')",call. = FALSE)
   }
   if((by_annopbrobe) & !requireNamespace("AnnoProbe",quietly = TRUE)) {
     stop("Package \"Biobase\" needed for this function to work.
@@ -39,20 +37,31 @@ geo_download <-  function(gse,by_annopbrobe = TRUE,
   }
   if(by_annopbrobe){
     if(!file.exists(paste0(destdir,"/",gse,"_eSet.Rdata"))){
-      eSet <- AnnoProbe::geoChina(gse, destdir = destdir)
+      eSet <- tryCatch({AnnoProbe::geoChina(gse, destdir = destdir)
+      },error = function(e){555})
+
+      if(!is.list(eSet)){
+        warning("This data is not indexed by AnnoProbe, downloaded by GEOquery")
+        eSet <- GEOquery::getGEO(gse,destdir = destdir,getGPL = FALSE)
+        gset = eSet
+        save(gset,file = paste0(destdir,"/",gse,"_eSet.Rdata"))
+      }
     }else{
       suppressWarnings(load(paste0(destdir,"/",gse,"_eSet.Rdata")))
       eSet = gset
       rm(gset)
     }
-
   }else{
-    eSet <- GEOquery::getGEO(gse,
-                   destdir = destdir,
-                   getGPL = FALSE)
+    eSet <- GEOquery::getGEO(gse,destdir = destdir,getGPL = FALSE)
   }
-  exp <- Biobase::exprs(eSet[[1]])
-  pd <- Biobase::pData(eSet[[1]])
+  if(length(n)!=1) stop("only one ExpresssionSet can be analyzed")
+  if(length(eSet)==1 & n!=1) {
+    n = 1
+    warning("this data only have one ExpresssionSet object")
+  }
+
+  exp <- Biobase::exprs(eSet[[n]])
+  pd <- Biobase::pData(eSet[[n]])
   if(simpd){
     colname <- vector("character")
     count <- vector("integer")
@@ -60,12 +69,13 @@ geo_download <-  function(gse,by_annopbrobe = TRUE,
       colname[i] = colnames(pd)[[i]]
       count[i] = nrow(pd[!duplicated(pd[, i]), ])
     }
-    df <- data.frame(colname, count,stringsAsFactors = FALSE) %>% arrange(desc(count)) %>% dplyr::filter(count >1)
+    df <- data.frame(colname, count) |>
+      dplyr::arrange(desc(count)) |> dplyr::filter(count >1)
     pd <-  pd[,df$colname]
     pd <- pd[,!(colnames(pd) %in% c("geo_accession", "supplementary_file"))]
     if(colon_remove){
-      pd = pd[,!apply(pd, 2, function(x){all(str_detect(x,": |https|www")|is.na(x)|x=="")})]
-      colnames(pd) = str_remove(colnames(pd),":ch1")
+      pd = pd[,!apply(pd, 2, function(x){all(stringr::str_detect(x,": |https|www")|is.na(x)|x=="")})]
+      colnames(pd) = stringr::str_remove(colnames(pd),":ch1")
     }
   }
   p1 = identical(rownames(pd),colnames(exp))
@@ -77,8 +87,10 @@ geo_download <-  function(gse,by_annopbrobe = TRUE,
       pd = pd[intersect(rownames(pd),colnames(exp)),]
     }
   }
-  gpl <- eSet[[1]]@annotation
-  re = list(exp=exp,pd=pd,gpl=gpl)
+  gpl <- eSet[[n]]@annotation
+  pd2 = apply(pd,2,as.character) |> as.data.frame()
+  rownames(pd2) = rownames(pd)
+  re = list(exp=exp,pd=pd2,gpl=gpl)
   if(is.null(dim(exp)) | nrow(exp)==0){
     warning("exp is empty")
   } else if (any(is.na(exp)|is.nan(exp))) {
@@ -117,6 +129,7 @@ find_anno <-function(gpl,install = FALSE,update = FALSE){
     if(gpl %in% setdiff(exists_anno_list,pkg_all$gpl)){
       ml1 = str_remove_all(paste0("`ids <- AnnoProbe::idmap\\(","\\'",gpl,"\\'","\\)`"),"\\\\")
       message(paste0("no annotation packages avliable,please use ",ml1))
+      message("if you get error by this code ,please try different `type` parameters")
     }else{
       message("no annotation avliable in Bioconductor and AnnoProbe")
     }
@@ -126,7 +139,7 @@ find_anno <-function(gpl,install = FALSE,update = FALSE){
     ml2 = str_remove_all(paste0("`library\\(",qz,".db","\\)",";","ids <- toTable\\(",qz,"SYMBOL\\)`"),"\\\\")
     if(install){
       if(!suppressMessages(requireNamespace(paste0(qz,".db")))){
-        BiocManager::install(paste0(qz,".db"),update = update)
+        BiocManager::install(paste0(qz,".db"),update = update,ask = FALSE)
         suppressMessages(requireNamespace(paste0(qz,".db")))
       }
     }
@@ -134,6 +147,7 @@ find_anno <-function(gpl,install = FALSE,update = FALSE){
       message(paste0(ml2," is avaliable"))
     }else {
       message(paste0(ml2," and ",ml1 ," are both avaliable"))
+      message("if you get error by idmap, please try different `type` parameters")
     }
   }
 }

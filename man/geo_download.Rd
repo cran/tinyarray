@@ -9,19 +9,22 @@ geo_download(
   by_annopbrobe = TRUE,
   simpd = TRUE,
   colon_remove = FALSE,
-  destdir = getwd()
+  destdir = getwd(),
+  n = 1
 )
 }
 \arguments{
 \item{gse}{gse assession number}
 
-\item{by_annopbrobe}{getGEO or geoChina}
+\item{by_annopbrobe}{download data by geoquery or annoprobe}
 
 \item{simpd}{get simplified pdata,drop out columns with all same values}
 
 \item{colon_remove}{whether to remove duplicated columns with colons}
 
 \item{destdir}{The destination directory for data downloads.}
+
+\item{n}{For data with more than one ExpressionSet, specify which one to analyze}
 }
 \value{
 a list with exp,pd and gpl
