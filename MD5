@@ -1,13 +1,13 @@
-74ec7a02edb7322afa3c778587abe8ad *DESCRIPTION
+807c839c68060e535c3c5c3840051c1a *DESCRIPTION
 d76a4296118c646270f60771b633c668 *LICENSE
-787ea2eab663268a467ad823fd22a2fb *NAMESPACE
-dfb93d3feca98b1751b9d106b5ecac06 *NEWS.md
+8a4ea67763ccccf14ebc10cf5ccfabad *NAMESPACE
+9bf8e684b37d3477988ee02196ba2409 *NEWS.md
 8e5d9d80574c3d1249a0538309e7fb82 *R/10_survival_cut_cox_km.R
 436c96356b1c2df1878757649d5df052 *R/11_surv_box_plot.R
 8b4d597ee2802469c8a62f4b965d0fea *R/12_cor_and_hyper.R
 f445e0f8e49c0bf44c9fb1ea57dab363 *R/13_network_edge_node.R
 ceb8825c81bd274799cadcf647400b17 *R/14_dumd_all.R
-843a22d97c82cee05dddb849cf52d11a *R/1_plots.R
+3063e08985929bc421f9ca6c05ed2e9a *R/1_plots.R
 905f2d173fe6939286fc6a84c077a187 *R/2_geo_id.R
 ecb2044e126ac45b6d1744449f1210b8 *R/3_get_deg.R
 6fb66f8df619c0a74de400507ba955a0 *R/4_multi_deg.R
@@ -36,6 +36,8 @@ d9b50b4c68175d161889002e3ab7ba00 *man/box_surv.Rd
 45f79b17e6b3b419d487960957d8d336 *man/cod.Rd
 c2d5b3ddb9a35cab772b64abb705d61d *man/cor.full.Rd
 d10bc0750aa6872979a01fcbcde3caeb *man/cor.one.Rd
+372075456288992095dda79cd94fbbb3 *man/corheatmap.Rd
+d080b9e372528bf819684a1b2a76bf22 *man/corscatterplot.Rd
 d013298db1d16ebb7fc88e53e4c86866 *man/deg.Rd
 cd382b4ee9d96542d7fe1af9af6e5872 *man/deseq_data.Rd
 381a1913e19e0eb919077caa3e971aaf *man/double_enrich.Rd
