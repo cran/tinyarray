@@ -1,4 +1,4 @@
-109db00ac5b4eb11e63b0031f2893802 *DESCRIPTION
+d4c7797499b673904e2084e5fb7b4758 *DESCRIPTION
 2cb2008ca9c85d80075973208f65772b *LICENSE
 bb38b75c3d0f3b50e25e502ef21f7790 *NAMESPACE
 9bf8e684b37d3477988ee02196ba2409 *NEWS.md
@@ -9,15 +9,15 @@ f445e0f8e49c0bf44c9fb1ea57dab363 *R/13_network_edge_node.R
 ceb8825c81bd274799cadcf647400b17 *R/14_dumd_all.R
 b672c6aa3e0f91483a62a58c3fd7e1cf *R/1_plots.R
 904fe05007e58af0b3d0c7aba1b22b51 *R/2_geo_id.R
-4774c91408d2d2be08256fa036311a97 *R/3_get_deg.R
-57b10e711b43a2b9cec99a6dcfa4e43e *R/4_multi_deg.R
+850bd90396bc2ce198879cb6eaa0b0d7 *R/3_get_deg.R
+e2bdb7d5bfd846dfedbb10c545c05bb7 *R/4_multi_deg.R
 8d1fd3f4249695dd5d635589aa6b3d9c *R/5_get_deg_all.R
 aa1c3f24348c51a43b922de51bfa62ab *R/6_multi_deg_all.R
 4999d712d1a2658e0a2dc8eceec68179 *R/7_quick_double_enrich.R
 4d3dcbd4dc95b4b2bd770d6843cf5706 *R/8_tcga_group_trans_exp.R
 be986425a304893f5a35e273e4e58a49 *R/9_cor_t_choose.R
 73de127338903c20c171c89a52867081 *R/data.R
-c5711e021a2ff61f909016cfb2187c75 *R/start_massage.R
+64e12dc9dedf274a721671515e2e158c *R/start_massage.R
 0e1687c4149121df8909f4815157f212 *README.md
 972beb29fca7ebc5e05bc08e7163efb5 *data/cod.rda
 836a1b68dfd9ba65c4d1455f46feb0be *data/deg.rda
@@ -31,7 +31,7 @@ d42f0a72a4d765c51e89092e4fbe44f6 *data/lnc_annov23.rda
 96fffb694f00d605cce3d96bd54cca43 *data/mRNA_anno.rda
 275c20e521c4fd531779ba2b670fa3a6 *data/mRNA_annov23.rda
 9e79d4c24ee553b6d80bdd4f9752cad8 *data/meta1.rda
-57a18a14972524fd09eac075cf929df0 *data/pkg_all.rda
+0f94447236cf9e2f931097fc1af2f835 *data/pkg_all.rda
 9942c821315d4e6504065140c8809054 *man/box_surv.Rd
 45f79b17e6b3b419d487960957d8d336 *man/cod.Rd
 c2d5b3ddb9a35cab772b64abb705d61d *man/cor.full.Rd
@@ -78,7 +78,7 @@ a0a36b666fa4015f17a0045a6e4cab5f *man/match_exp_cl.Rd
 6896013f040629ab30f5c226f97595d7 *man/meta1.Rd
 72656985458e090fa919a68aeebc47b5 *man/multi_deg.Rd
 5f2855346755eff8e6a8c160954cb744 *man/multi_deg_all.Rd
-d55de7909630ca5e55f93582af70ff67 *man/pkg_all.Rd
+30b8cd6d6e9266b5d65e135979d1f323 *man/pkg_all.Rd
 d31daa07b085640e2671eeca64060cc7 *man/plcortest.Rd
 709996d41dbab50db15ba7f35ed60d39 *man/plot_deg.Rd
 f7154d12129639599bd6138a5eced746 *man/point_cut.Rd
