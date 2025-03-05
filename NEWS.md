@@ -146,3 +146,9 @@ cran 人工返回修改意见：
 
 2.corheatmap
 
+### 2.3.7
+
+增加double_enrich的物种支持
+
+改进geo_download下载和内存问题
+

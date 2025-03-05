@@ -1,3 +1,78 @@
+##' geo_parser
+##'
+##' download gse data and get informations
+##'
+##' @param gse gse assession number
+##' @param destdir	 The destination directory for data downloads
+##' @importFrom stringr str_remove_all
+##' @importFrom stringr str_remove
+##' @importFrom stringr str_starts
+##' @importFrom stringr str_split
+##' @importFrom stringr str_detect
+##' @importFrom stringr str_extract
+##' @return an ExpressionSet object list
+##' @author Xiaojie Sun
+##' @export
+##' @examples
+##' \dontrun{
+##' if(requireNamespace("GEOquery",quietly = TRUE)){
+##'   gse = "GSE42872"
+##'   a = geo_download(gse,destdir=tempdir())
+##' }else{
+##'   print("Package 'GEOquery' needed for this function to work.
+##'          Please install it by BiocManager::install('GEOquery')")
+##' }
+##' }
+##' @seealso
+##' \code{\link{find_anno}}
+
+geo_parser <- function(gse,destdir = getwd()) {
+  series_matrix_file = paste0(gse,'_series_matrix.txt.gz')
+  if(!file.exists(paste0(destdir,"/",series_matrix_file))){
+    message(paste0("Downloading", series_matrix_file ,"from GEO ..."))
+  }
+  if(requireNamespace("GEOquery",quietly = TRUE)) {
+    eSet = tryCatch({GEOquery::getGEO(gse, destdir = destdir,getGPL = FALSE)
+    },error = function(e){555})
+  }else{
+    eSet = 555
+  }
+
+  if(!file.exists(paste0(destdir,"/",series_matrix_file))){
+    stop('Unable to download the series matrix file. Please download the series
+         matrix file from GEO, place it in your working directory, and then
+         rerun this function.')
+  }
+
+  if(is.list(eSet)){
+    return(eSet)
+  }else{
+    if(!requireNamespace("Biobase",quietly = TRUE)) {
+      stop("Package \"Biobase\" needed for this function to work.
+           Please install it by BiocManager::install('Biobase')",call. = FALSE)
+    }else{
+      lines <- readLines(series_matrix_file)
+      pd <- str_remove_all(lines, "^!|\"") |>
+        str_split("\t", simplify = TRUE)
+      k <- pd[,1] |> str_starts("Sample_")
+      pd <- pd[k, ]
+      rownames(pd) <- pd[,1] |> str_remove("Sample_")
+      pd <- t(pd[,-1])
+      rownames(pd) = pd[,2]
+      metaData <- data.frame(labelDescription=colnames(pd))
+      pd <- Biobase::AnnotatedDataFrame(data = data.frame(pd),varMetadata = metaData)
+      exp <- utils::read.delim(series_matrix_file,
+                               comment.char = "!",
+                               row.names = 1) |>
+        as.matrix()
+      gpl = str_extract(lines[which(str_detect(lines,'GPL'))[1]],"GPL\\d+")
+      eSet = list(Biobase::ExpressionSet(assayData = exp,phenoData = pd,annotation = gpl))
+      return(eSet)
+    }
+  }
+}
+
+
 ##' geo_download
 ##'
 ##' download gse data and get informations
@@ -36,7 +111,7 @@ geo_download <-  function(gse,by_annopbrobe = TRUE,
                           destdir = getwd(),n = 1){
   if(by_annopbrobe){
     if(!requireNamespace("AnnoProbe",quietly = TRUE)) {
-      stop("Package \"Biobase\" needed for this function to work.
+      stop("Package \"AnnoProbe\" needed for this function to work.
          Please install it by install.packages('AnnoProbe')",call. = FALSE)
     }
     if(!file.exists(paste0(destdir,"/",gse,"_eSet.Rdata"))){
@@ -44,8 +119,8 @@ geo_download <-  function(gse,by_annopbrobe = TRUE,
       },error = function(e){555})
 
       if(!is.list(eSet)){
-        warning("This data is not indexed by AnnoProbe, downloaded by GEOquery")
-        eSet <- GEOquery::getGEO(gse,destdir = destdir,getGPL = FALSE)
+        message("This data is not indexed by AnnoProbe, downloading from GEO ...")
+        eSet <- geo_parser(gse,destdir = destdir)
         gset = eSet
         save(gset,file = paste0(destdir,"/",gse,"_eSet.Rdata"))
       }
@@ -59,7 +134,7 @@ geo_download <-  function(gse,by_annopbrobe = TRUE,
       stop("Package \"GEOquery\" needed for this function to work.
          Please install it by BiocManager::install('GEOquery')",call. = FALSE)
     }
-    eSet <- GEOquery::getGEO(gse,destdir = destdir,getGPL = FALSE)
+    eSet <- geo_parser(gse,destdir = destdir)
   }
   if(length(n)!=1) stop("only one ExpresssionSet can be analyzed")
   if(length(eSet)==1 & n!=1) {
